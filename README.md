@@ -36,3 +36,9 @@ I like some features of cpp like operator overloading and error handling, and I 
 8.  []Density??
 9.  []Surface tension??
 10. []Multiple particles for different fluids
+
+
+
+
+# MAKE IT RUN
+One must make a build folder for and run cmake ../
