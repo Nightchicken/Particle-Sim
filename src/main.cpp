@@ -1,40 +1,59 @@
-#include <cstdint>
-#include <stdio.h>
-#include <stdlib.h>
 #include "particleHandler.h"
-#include <pthread.h>
+#include "renderer.h"
 #include <GLFW/glfw3.h>
-//Borrowed from Google
-const uint32_t width = 500;
-const uint32_t height = 500;
-void Start() {
+#include <cstdio>
+
+static constexpr uint32_t NUM_PARTICLES = 4096;
+static constexpr uint32_t WIN_WIDTH = 800;
+static constexpr uint32_t WIN_HEIGHT = 800;
+static constexpr float SPAWN_RADIUS = 50.0f;
+
+int main() {
+  ParticleHandler handler;
+  handler.init(NUM_PARTICLES, SPAWN_RADIUS);
+
   if (!glfwInit()) {
-    return;
+    fprintf(stderr, "Failed to init GLFW\n");
+    return 1;
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  GLFWwindow* window =
-      glfwCreateWindow(width, height, "WebGPU window", nullptr, nullptr);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  GLFWwindow *window =
+      glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "N-Body Sim", nullptr, nullptr);
+  if (!window) {
+    fprintf(stderr, "Failed to create window\n");
+    glfwTerminate();
+    return 1;
+  }
+
+  Renderer renderer;
+  renderer.useGPUCompute = true;
+
+  if (!renderer.init(window, handler)) {
+    fprintf(stderr, "Failed to init renderer\n");
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    handler.destroy();
+    return 1;
+  }
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
-    // TODO: Render a triangle using WebGPU.
-  }
-}
 
-//End of borrowed code
-int main(){
-	int arraySize = 128;
-	Start();
-	particle* particleArray[arraySize];
-	for (int i = 0; i < arraySize; i++){
-		particleArray[i] = createParticle(0, 0, 1);
-	}
-	for (int i = 0; i < arraySize; i++){
-		printParticle(particleArray[i]);
-	}
-	for (int i = 0; i < arraySize; i++){
-		free(particleArray[i]);
-	}
-	return 0;
+    if (renderer.useGPUCompute) {
+      renderer.dispatchCompute();
+    } else {
+      handler.update();
+      renderer.uploadParticles(handler);
+    }
+
+    renderer.render();
+  }
+
+  renderer.cleanup();
+  glfwDestroyWindow(window);
+  glfwTerminate();
+  handler.destroy();
+  return 0;
 }
