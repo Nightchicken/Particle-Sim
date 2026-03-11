@@ -24,23 +24,6 @@
 - **Double-buffered** particle SSBOs with ping-pong for compute passes
 - Supports both CPU physics (quadtree) and GPU compute modes via `renderer.useGPUCompute`
 
-## Building
-
-```bash
-git clone --depth 1 https://github.com/google/dawn.git  # if dawn/ dir is missing
-mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-```
-
-First build is slow because of Dawn compilation. Subsequent builds are fast.
-
-
-## Usage
-
-```bash
-./ParticleSim
-```
 
 ### Configuration (in main.cpp)
 - `NUM_PARTICLES` — particle count (default 4096)
